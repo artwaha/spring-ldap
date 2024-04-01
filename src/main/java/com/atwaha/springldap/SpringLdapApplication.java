@@ -8,6 +8,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.List;
+
 @SpringBootApplication
 public class SpringLdapApplication implements ApplicationRunner {
 
@@ -29,6 +31,14 @@ public class SpringLdapApplication implements ApplicationRunner {
                 .name("Abdul-razak Twaha")
                 .role(Role.ADMIN)
                 .build();
-        userRepository.save(abdulRazak);
+
+        User abdulRahman = User
+                .builder()
+                .username("abdulrahman.othman")
+                .name("Abdulrahman Othman Hemed")
+                .role(Role.USER)
+                .build();
+
+        userRepository.saveAll(List.of(abdulRazak, abdulRahman));
     }
 }

@@ -2,11 +2,14 @@ package com.atwaha.springldap.config;
 
 import com.atwaha.springldap.model.Token;
 import com.atwaha.springldap.repository.TokenRepository;
+import com.atwaha.springldap.repository.UserRepository;
 import com.atwaha.springldap.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +27,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -35,6 +39,12 @@ public class SecurityConfig {
                     requests
                             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/v1/auth/login", "/h2-console/**")
                             .permitAll();
+                    requests
+                            .requestMatchers("/api/v1/auth/user")
+                            .hasRole("USER");
+                    requests
+                            .requestMatchers("/api/v1/auth/admin")
+                            .hasRole("ADMIN");
                     requests
                             .anyRequest()
                             .fullyAuthenticated();
@@ -76,7 +86,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    ActiveDirectoryLdapAuthenticationProvider authenticationProvider() {
+    public ActiveDirectoryLdapAuthenticationProvider authenticationProvider() {
         return new ActiveDirectoryLdapAuthenticationProvider("net.orci", "ldap://192.168.1.12:389");
+    }
+
+    @Bean
+    static RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
+//        hierarchy.setHierarchy("ROLE_ADMIN > ROLE_EXECUTIVE_DIRECTOR > ROLE_HR > ROLE_FINANCE > ROLE_HOD > ROLE_SUPERVISOR\n" +
+//                "ROLE_SUPERVISOR > ROLE_STAFF\n" +
+//                "ROLE_SUPERVISOR > ROLE_VOLUNTEER");
+        return hierarchy;
     }
 }
